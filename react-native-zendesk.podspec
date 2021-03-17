@@ -14,8 +14,8 @@ Pod::Spec.new do |s|
 
   s.source       = { :git => package['repository']['url'], :tag => "v#{s.version}" }
   s.source_files  = "ios/**/*.{h,m,swift}"
-  s.swift_version = '5.0'
+  s.swift_version = '5.3'
 
   s.dependency "React"
-  s.dependency "ZendeskSDK", "~> 3.0.3"
+  s.dependency "ZendeskSDK", "~> 5.2.0"
 end

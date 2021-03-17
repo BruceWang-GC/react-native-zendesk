@@ -8,9 +8,9 @@
 
 import UIKit
 import Foundation
-import ZendeskSDK
-import ZendeskCoreSDK
 import CommonUISDK
+import SupportSDK
+import ZendeskCoreSDK
 
 @objc(RNZendesk)
 class RNZendesk: RCTEventEmitter {
@@ -41,6 +41,10 @@ class RNZendesk: RCTEventEmitter {
         
         Zendesk.initialize(appId: appId, clientId: clientId, zendeskUrl: zendeskUrl)
         Support.initialize(withZendesk: Zendesk.instance)
+        
+        // CommonTheme.currentTheme.primaryColor =  colorLiteral(red: 0.2735899687, green: 0.7367950082, blue: 0.7950475812, alpha: 1)
+        // UINavigationBar.appearance().barTintColor = UIColor.colorFromHex("#FBC943")
+        // UINavigationBar.appearance().tintColor = UIColor.colorFromHex("#FFFFFF")
     }
     
     // MARK: - Indentification
@@ -64,10 +68,16 @@ class RNZendesk: RCTEventEmitter {
     func showHelpCenter(with options: [String: Any]) {
         DispatchQueue.main.async {
             let hcConfig = HelpCenterUiConfiguration()
-            hcConfig.hideContactSupport = (options["hideContactSupport"] as? Bool) ?? false
-            let helpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig])
+            hcConfig.showContactOptions = !((options["hideContactSupport"] as? Bool) ?? false);
+
+
+            let articleConfig = ArticleUiConfiguration();
+            articleConfig.showContactOptions = false;
             
+            let helpCenter = HelpCenterUi.buildHelpCenterOverviewUi(withConfigs: [hcConfig, articleConfig])
             let nvc = UINavigationController(rootViewController: helpCenter)
+            nvc.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+
             UIApplication.shared.keyWindow?.rootViewController?.present(nvc, animated: true, completion: nil)
         }
     }
