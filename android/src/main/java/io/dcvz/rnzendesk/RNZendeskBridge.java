@@ -5,13 +5,14 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import zendesk.commonui.UiConfig;
+import zendesk.configurations.Configuration;
 import zendesk.core.Zendesk;
 import zendesk.core.Identity;
 import zendesk.core.JwtIdentity;
 import zendesk.core.AnonymousIdentity;
 import zendesk.support.Support;
 import zendesk.support.guide.HelpCenterActivity;
+import zendesk.support.guide.ViewArticleActivity;
 import zendesk.support.request.RequestActivity;
 import zendesk.support.requestlist.RequestListActivity;
 
@@ -21,13 +22,14 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class RNZendeskBridge extends ReactContextBaseJavaModule {
+
 
     public RNZendeskBridge(ReactApplicationContext reactContext) {
         super(reactContext);
     }
+
 
     @Override
     public String getName() {
@@ -42,7 +44,13 @@ public class RNZendeskBridge extends ReactContextBaseJavaModule {
         String appId = config.getString("appId");
         String zendeskUrl = config.getString("zendeskUrl");
         String clientId = config.getString("clientId");
+
+
         Zendesk.INSTANCE.init(getReactApplicationContext(), zendeskUrl, appId, clientId);
+        // 默认为匿名认证
+        Identity identity = new AnonymousIdentity();
+        Zendesk.INSTANCE.setIdentity(identity);
+
         Support.INSTANCE.init(Zendesk.INSTANCE);
     }
 
@@ -54,31 +62,49 @@ public class RNZendeskBridge extends ReactContextBaseJavaModule {
         Zendesk.INSTANCE.setIdentity(identity);
     }
 
-    @ReactMethod
-    public void identifyAnonymous(String name, String email) {
-        Identity identity = new AnonymousIdentity.Builder()
-            .withNameIdentifier(name)
-            .withEmailIdentifier(email)
-            .build();
+   @ReactMethod
+   public void identifyAnonymous(String name, String email) {
+       Identity identity = new AnonymousIdentity.Builder()
+           .withNameIdentifier(name)
+           .withEmailIdentifier(email)
+           .build();
 
-        Zendesk.INSTANCE.setIdentity(identity);
-    }
+       Zendesk.INSTANCE.setIdentity(identity);
+   }
+
 
     // MARK: - UI Methods
 
     @ReactMethod
     public void showHelpCenter(ReadableMap options) {
-//        Boolean hideContact = options.getBoolean("hideContactUs") || false;
-        UiConfig hcConfig = HelpCenterActivity.builder()
-                .withContactUsButtonVisible(!(options.hasKey("hideContactSupport") && options.getBoolean("hideContactSupport")))
-                .config();
 
-        Intent intent = HelpCenterActivity.builder()
-                .withContactUsButtonVisible(true)
-                .intent(getReactApplicationContext(), hcConfig);
+        try {
+            Configuration helpConfig = HelpCenterActivity.builder()
+                    .withContactUsButtonVisible(!(options.hasKey("hideContactSupport") && options.getBoolean("hideContactSupport")))
+                    .withShowConversationsMenuButton(false)
+                    .config();
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getReactApplicationContext().startActivity(intent);
+            Configuration articleConfig = ViewArticleActivity.builder()
+                    .withContactUsButtonVisible(false)
+                    .config();
+
+            Configuration requestConfig = RequestActivity.builder()
+                    .withTags("android", "mobile")
+                    .config();
+
+            Intent intent = HelpCenterActivity.builder()
+                    .intent(getReactApplicationContext(), helpConfig, articleConfig, requestConfig);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            if (intent != null) {
+                getReactApplicationContext().startActivity(intent);
+            }
+
+        }  catch (Exception e) {
+            System.out.println("E_FAILED_TO_SHOW_ZENDESK");
+            System.out.println(e);
+        }
+
     }
     
     @ReactMethod
@@ -89,16 +115,13 @@ public class RNZendeskBridge extends ReactContextBaseJavaModule {
                 .withTags(tags)
                 .intent(getReactApplicationContext());
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         getReactApplicationContext().startActivity(intent);
     }
 
     @ReactMethod
     public void showTicketList() {
-        Intent intent = RequestListActivity.builder()
-                .intent(getReactApplicationContext());
-
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getReactApplicationContext().startActivity(intent);
+        RequestListActivity.builder()
+            .show(getReactApplicationContext());
     }
 }
