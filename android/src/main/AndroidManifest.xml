@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.dcvz.rnzendesk">
   <application android:label="@string/app_name" android:supportsRtl="true">
+    <activity android:name="zendesk.support.guide.HelpCenterActivity"
+        android:theme="@style/Leykids.Zendesk.Theme" />
+    <activity android:name="zendesk.support.guide.ViewArticleActivity"
+        android:theme="@style/Leykids.Zendesk.Theme" />
   </application>
 </manifest>
