@@ -17,5 +17,5 @@ Pod::Spec.new do |s|
   s.swift_version = '5.3'
 
   s.dependency "React"
-  s.dependency "ZendeskSDK", "~> 5.2.0"
+  s.dependency "ZendeskSupportSDK", "~> 5.2.0"
 end
